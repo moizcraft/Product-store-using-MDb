@@ -16,7 +16,10 @@ const productSchema = z.object({
   price: z.number().min(0.01, "Price must be greater than 0"),
   category: z.string().min(1, "Category is required"),
   stock: z.number().min(0, "Stock cannot be negative"),
-  imageUrl: z.string().url("Invalid image URL"),
+  imageUrl: z.string().min(1, "Image is required").refine(
+    (val) => val.startsWith('data:image/') || val.startsWith('http://') || val.startsWith('https://'),
+    { message: "Image must be a valid URL or base64 encoded image" }
+  ),
 });
 
 export default function AddProduct() {
@@ -24,6 +27,8 @@ export default function AddProduct() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
 
   useEffect(() => {
     if (user && user.role !== 'seller') {
@@ -31,24 +36,94 @@ export default function AddProduct() {
     }
   }, [user, navigate]);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(productSchema),
   });
+
+  const imageUrl = watch('imageUrl');
+
+  useEffect(() => {
+    if (imageUrl) {
+      setImagePreview(imageUrl);
+    }
+  }, [imageUrl]);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await api.post('/files/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.imageUrl) {
+        setValue('imageUrl', response.data.imageUrl);
+        setImagePreview(response.data.imageUrl);
+      }
+    } catch (err) {
+      console.error('Image upload error:', err);
+      setError(err.response?.data?.error || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const onSubmit = async (data) => {
     setError('');
     setLoading(true);
 
     try {
-      await api.post('/products/addProduct', {
+      console.log('=== SUBMITTING PRODUCT ===');
+      console.log('Form data:', data);
+      console.log('User:', user);
+      console.log('Cookies:', document.cookie);
+      
+      const payload = {
         ...data,
         inStock: data.stock > 0,
-      });
-
+      };
+      console.log('Payload being sent:', payload);
+      
+      const response = await api.post('/products/addProduct', payload);
+      
+      console.log('Product added successfully:', response.data);
       navigate('/seller/dashboard', { replace: true });
     } catch (err) {
-      console.error('Error adding product:', err);
-      setError(err.response?.data?.message || 'Failed to add product');
+      console.error('=== ERROR DETAILS ===');
+      console.error('Full error:', err);
+      console.error('Error message:', err.message);
+      console.error('Error response:', err.response);
+      console.error('Error response data:', err.response?.data);
+      console.error('Error response status:', err.response?.status);
+      
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Failed to add product';
+      setError(errorMsg);
+      
+      // Show detailed error in UI
+      if (err.response?.data) {
+        console.log('SERVER ERROR:', JSON.stringify(err.response.data, null, 2));
+      }
     } finally {
       setLoading(false);
     }
@@ -184,21 +259,64 @@ export default function AddProduct() {
               {/* Image URL */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image URL *
+                  Product Image *
                 </label>
+                
+                {/* File Upload */}
+                <div className="mb-3">
+                  <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-500 transition-colors">
+                    <div className="text-center">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {uploadingImage ? 'Uploading...' : 'Click to upload image'}
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage || loading}
+                    />
+                  </label>
+                </div>
+
+                {/* Or URL Input */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-gray-50 text-gray-500">Or enter URL</span>
+                  </div>
+                </div>
+
                 <Input
                   {...register('imageUrl')}
-                  type="url"
+                  type="text"
                   placeholder="https://example.com/image.jpg"
-                  className={errors.imageUrl ? "border-red-500" : ""}
-                  disabled={loading}
+                  className={`mt-3 ${errors.imageUrl ? "border-red-500" : ""}`}
+                  disabled={loading || uploadingImage}
                 />
                 {errors.imageUrl && (
                   <p className="mt-1 text-xs text-red-500">{errors.imageUrl.message}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Enter a valid image URL for your product
-                </p>
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                      onError={() => setImagePreview('')}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}

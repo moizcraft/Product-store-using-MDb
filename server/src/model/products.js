@@ -42,8 +42,12 @@ const ProductSchema = new Schema({
         require: [true, 'Product image URL is required'],
         validate: {
             validator: (value) => {
-                return validator.isURL(value);
-            }
+                // Allow both URLs and base64 encoded images
+                const isBase64 = value.startsWith('data:image/');
+                const isURL = validator.isURL(value);
+                return isBase64 || isURL;
+            },
+            message: 'Image must be a valid URL or base64 encoded image'
         }
     },
     sellerId: {
