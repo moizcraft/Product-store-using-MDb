@@ -48,7 +48,7 @@ export function Header() {
 
   return (
     <header 
-      className="fixed top-0 left-0 right-0 shadow-md z-50 border-b border-gray-200 w-full"
+      className="fixed top-0 left-0 right-0 shadow-md z-[100] border-b border-gray-200 w-full"
       style={{ backgroundColor: '#fcfbf9' }}
     >
       <div className="container mx-auto px-4 py-3 relative z-10 flex items-center justify-between">

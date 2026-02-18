@@ -5,7 +5,9 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import { RootLayout } from './layouts/RootLayout'
+import { DashboardLayout } from './layouts/DashboardLayout'
 import { AuthLayout } from './layouts/AuthLayout'
+import { SuperAdminLayout } from './layouts/SuperAdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import About from './pages/About'
@@ -40,64 +42,8 @@ const router = createBrowserRouter([
         { path: "products", element: <Products /> },
         { path: "products/:id", element: <ProductDetail /> },
         { path: "cart", element: <Cart /> },
-        { 
-          path: "dashboard", 
-          element: (
-            <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          ) 
-        },
-        { 
-          path: "admin/products", 
-          element: (
-            <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-              <AdminProducts />
-            </ProtectedRoute>
-          ) 
-        },
-        { 
-          path: "admin/add-product", 
-          element: (
-            <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-              <AdminAddProduct />
-            </ProtectedRoute>
-          ) 
-        },
-        { 
-          path: "admin/edit-product/:id", 
-          element: (
-            <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-              <AdminEditProduct />
-            </ProtectedRoute>
-          ) 
-        },
         { path: "orders", element: <Orders /> },
-        { path: "profile", element: <Profile /> },
-        { 
-          path: "manage-admins", 
-          element: (
-            <ProtectedRoute requiredRole="super-admin">
-              <ManageAdmins />
-            </ProtectedRoute>
-          )
-        },
-        { 
-          path: "manage-users", 
-          element: (
-            <ProtectedRoute requiredRole="super-admin">
-              <ManageUsers />
-            </ProtectedRoute>
-          )
-        },
-        { 
-          path: "super-admin", 
-          element: (
-            <ProtectedRoute requiredRole="super-admin">
-              <SuperAdminDashboard />
-            </ProtectedRoute>
-          )
-        }
+        { path: "profile", element: <Profile /> }
     ]
   },
   {
@@ -106,6 +52,74 @@ const router = createBrowserRouter([
         { path: '/login', element: <Login /> },
         { path: '/signup', element: <Signup /> },
         { path: '/forgot-password', element: <ForgotPassword /> }
+    ]
+  },
+  // Dashboard routes without footer
+  {
+    element: <DashboardLayout />,
+    children: [
+      { 
+        path: "dashboard", 
+        element: (
+          <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        ) 
+      },
+      { 
+        path: "admin/products", 
+        element: (
+          <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+            <AdminProducts />
+          </ProtectedRoute>
+        ) 
+      },
+      { 
+        path: "admin/add-product", 
+        element: (
+          <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+            <AdminAddProduct />
+          </ProtectedRoute>
+        ) 
+      },
+      { 
+        path: "admin/edit-product/:id", 
+        element: (
+          <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+            <AdminEditProduct />
+          </ProtectedRoute>
+        ) 
+      },
+      { 
+        path: "manage-admins", 
+        element: (
+          <ProtectedRoute requiredRole="super-admin">
+            <ManageAdmins />
+          </ProtectedRoute>
+        )
+      },
+      { 
+        path: "manage-users", 
+        element: (
+          <ProtectedRoute requiredRole="super-admin">
+            <ManageUsers />
+          </ProtectedRoute>
+        )
+      }
+    ]
+  },
+  // Super Admin routes with header only (no footer)
+  {
+    element: <SuperAdminLayout />,
+    children: [
+      { 
+        path: "super-admin", 
+        element: (
+          <ProtectedRoute requiredRole="super-admin">
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        )
+      }
     ]
   },
   // Seller routes without RootLayout (no header/footer)

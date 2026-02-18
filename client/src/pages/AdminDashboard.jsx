@@ -56,11 +56,12 @@ export default function AdminDashboard() {
 
       // Calculate stats
       const totalProducts = allProducts.length;
-      const totalRevenue = allProducts.reduce((sum, p) => sum + (p.price * (p.stock || 0)), 0);
+      // Revenue should be 0 until actual orders are implemented
+      const totalRevenue = 0;
 
       setStats({
         products: totalProducts,
-        orders: Math.floor(Math.random() * 100) + 10, // Mocked for demo
+        orders: 0, // Set to 0 (no order system implemented yet)
         totalRevenue: totalRevenue.toLocaleString(),
       });
 

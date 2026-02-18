@@ -150,8 +150,8 @@ export default function SuperAdminDashboardEnhanced() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
+    <div className="bg-gray-50 py-8 pb-20">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -167,10 +167,10 @@ export default function SuperAdminDashboardEnhanced() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <StatsCard icon={Users} label="Total Users" value={stats.totalUsers || 0} color="blue" />
-          <StatsCard icon={Store} label="Total Sellers" value={stats.totalSellers || 0} color="green" />
+          <StatsCard icon={Users} label="Total Users" value={users.length} color="blue" />
+          <StatsCard icon={Store} label="Total Sellers" value={admins.filter(a => a.role === 'seller').length} color="green" />
           <StatsCard icon={Package} label="Total Products" value={products.length} color="purple" />
-          <StatsCard icon={ShieldCheck} label="Total Accounts" value={stats.totalAccounts || 0} color="indigo" />
+          <StatsCard icon={ShieldCheck} label="Total Accounts" value={users.length + admins.length} color="indigo" />
         </div>
 
         {/* Tabs */}
@@ -307,7 +307,7 @@ function UsersTable({ users, deleting, editingUser, setEditingUser, onDelete, on
   }
 
   return (
-    <div className="p-6 overflow-x-auto">
+    <div className="p-6 w-full">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
@@ -441,7 +441,7 @@ function AdminsTable({ admins, deleting, editingAdmin, setEditingAdmin, onDelete
   }
 
   return (
-    <div className="p-6 overflow-x-auto">
+    <div className="p-6 w-full">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
@@ -574,7 +574,7 @@ function ProductsTable({ products, deleting, editingProduct, setEditingProduct, 
   }
 
   return (
-    <div className="p-6 overflow-x-auto">
+    <div className="p-6 w-full">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
