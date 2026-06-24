@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "https://product-store-using-mdb-production.up.railway.app/",
   withCredentials: true,
   timeout: 10000, // 10 second timeout
 });
